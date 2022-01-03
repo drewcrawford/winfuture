@@ -114,6 +114,9 @@ impl<Output: RuntimeType + 'static,Operation: WindowsOperation<Output>> Future f
                     }
                     Ok(())
                 };
+                //Calling set_completed to provide the completion handler may immediately invoke the completion handler, which tries to acquire the lock.
+                //If our lock is active, this will deadlock.  Therefore, drop our lock.
+                std::mem::drop(state_guard);
                 s.operation.set_completed(completion_handler).unwrap();
                 Poll::Pending
             }
