@@ -5,21 +5,40 @@ as is sometimes the case for some implementations */
 use windows::core::*;
 
 use windows as Windows;
-use windows::Foundation::{AsyncOperationCompletedHandler, AsyncStatus, IAsyncOperation};
+use windows::Foundation::{AsyncOperationCompletedHandler, AsyncStatus, IAsyncInfo_Impl, IAsyncOperation, IAsyncOperation_Impl};
 use winfuture::AsyncFuture;
 
 
 #[implement(Windows::Foundation::IAsyncOperation<u8>)]
 #[derive(Copy,Clone)]
 struct ImmediatelyComplete;
-#[allow(non_snake_case)]
-impl ImmediatelyComplete {
 
-    pub fn SetCompleted<'a, Param0: IntoParam<'a, AsyncOperationCompletedHandler<u8>>>(
-        &self,
-        handler: Param0
-    ) -> Result<()> {
-        let into_param = handler.into_param();
+
+impl IAsyncInfo_Impl for ImmediatelyComplete {
+    fn Id(&self) -> ::windows::core::Result<u32> {
+        todo!()
+    }
+
+    fn Status(&self) -> ::windows::core::Result<AsyncStatus> {
+        todo!()
+    }
+
+    fn ErrorCode(&self) -> ::windows::core::Result<::windows::core::HRESULT> {
+        todo!()
+    }
+
+    fn Cancel(&self) -> ::windows::core::Result<()> {
+        todo!()
+    }
+
+    fn Close(&self) -> ::windows::core::Result<()> {
+        todo!()
+    }
+}
+
+impl IAsyncOperation_Impl<u8> for ImmediatelyComplete {
+    fn SetCompleted(&self, handler: &::core::option::Option<AsyncOperationCompletedHandler<u8>>) -> ::windows::core::Result<()> {
+        let into_param: Param<AsyncOperationCompletedHandler<u8>> = handler.into_param();
         let reference = match &into_param {
             Param::Borrowed(b) => {b}
             Param::Owned(o) => {o}
@@ -31,13 +50,12 @@ impl ImmediatelyComplete {
         Ok(())
 
     }
-    pub fn Completed(&self) -> Result<AsyncOperationCompletedHandler<u8>> {
+    fn Completed(&self) -> Result<AsyncOperationCompletedHandler<u8>> {
         todo!();
     }
-    pub fn GetResults(&self) -> Result<u8> {
+    fn GetResults(&self) -> Result<u8> {
         Ok(3)
     }
-
 }
 
 #[test]

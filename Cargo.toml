@@ -10,5 +10,5 @@ windows = {version = "~0",features=["Foundation"]}
 thiserror = "~1"
 
 [dev-dependencies]
-windows = {version = "~0", features = ["build"]}
+windows = {version = "~0",features=["implement"]}
 kiruna = {git = "https://github.com/drewcrawford/kiruna", features =["test"]}

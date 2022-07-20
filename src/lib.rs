@@ -10,11 +10,11 @@ use std::sync::{Mutex, Arc};
 Erase the underlying windows type.  This may be, for example, [IAsyncOperation], [IAsyncOperationWithProgress], among others.
  */
 pub trait WindowsOperation<A: RuntimeType + 'static>: Sized {
-    fn set_completed<F: FnMut(&Self,AsyncStatus) -> windows::core::Result<()> + 'static>(&self, handler: F) -> windows::core::Result<()>;
+    fn set_completed<F: FnMut(&Self,AsyncStatus) -> windows::core::Result<()> + 'static + Send>(&self, handler: F) -> windows::core::Result<()>;
     fn get(&self) -> windows::core::Result<A>;
 }
 impl<A: RuntimeType> WindowsOperation<A> for IAsyncOperation<A> {
-    fn set_completed<F: FnMut(&Self,AsyncStatus) -> windows::core::Result<()> + 'static>(&self, mut handler: F) -> windows::core::Result<()> {
+    fn set_completed<F: FnMut(&Self,AsyncStatus) -> windows::core::Result<()> + 'static + Send>(&self, mut handler: F) -> windows::core::Result<()> {
         let h = AsyncOperationCompletedHandler::new(move |a,b| {
             let s3lf = a.as_ref().unwrap();
             handler(s3lf,b)
@@ -26,7 +26,7 @@ impl<A: RuntimeType> WindowsOperation<A> for IAsyncOperation<A> {
     }
 }
 impl<A: RuntimeType,P: RuntimeType> WindowsOperation<A> for IAsyncOperationWithProgress<A,P> {
-    fn set_completed<F: FnMut(&Self,AsyncStatus) -> windows::core::Result<()> + 'static>(&self, mut handler: F) -> windows::core::Result<()> {
+    fn set_completed<F: FnMut(&Self,AsyncStatus) -> windows::core::Result<()> + 'static + Send>(&self, mut handler: F) -> windows::core::Result<()> {
         let h = AsyncOperationWithProgressCompletedHandler::new(move |a,b| {
             let s3lf = a.as_ref().unwrap();
             handler(s3lf,b)
@@ -62,7 +62,7 @@ impl<Output: RuntimeType + 'static,Operation: WindowsOperation<Output>> AsyncFut
         Self{operation: operation,state: Arc::new(Mutex::new(State::Initial))}
     }
 }
-impl<Output: RuntimeType + 'static,Operation: WindowsOperation<Output>> Future for AsyncFuture<Output,Operation> {
+impl<Output: RuntimeType + 'static + Send,Operation: WindowsOperation<Output>> Future for AsyncFuture<Output,Operation> {
     type Output = Result<Output,Error>;
 
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
